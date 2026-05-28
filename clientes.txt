@@ -1,0 +1,11 @@
+ana,senha123
+bruno,admin456
+carla,carla2024
+danilo,dev789
+felipe,felipe123
+julia,minhasenha
+marcos,marcos@10
+paula,pau12345
+ricardo,rico99
+vitoria,vitoria88
+
