@@ -39,7 +39,10 @@ def inicializar():
     print(f"{Style.BRIGHT}Seja bem-vindo a Locadora de Veículos!\n{Style.RESET_ALL}".center(largura))
     while True:
         entrada = questionary.select("Selecione seu tipo de usuário:",choices=["Clientes",
-                                                                    "Colaborador"]).ask()
+                                                                    "Colaborador"],
+                                                                    qmark="",
+                                                                    instruction=" "
+                                                                    ).ask()
         
         if entrada == "Clientes":
             return "clientes"
@@ -68,8 +71,8 @@ def autenticar_usuario(texto):
 
 
             if ent_usuario == usuario_salvo and ent_senha == senha_salva:
-              sucesso = True
-              return usuario_salvo, sucesso
+                sucesso = True
+                return usuario_salvo, sucesso
     if sucesso:
         print("Acesso liberado!")
     else:
@@ -89,9 +92,9 @@ def locacao():
     veiculos = []
 
 
-    with open("veiculos.txt","r",encoding="utf-8") as arquivo:
+    with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as arquivo:
         for linha in arquivo:
-            dados = linha.strip().split(";")
+            dados = linha.strip().split(",")
 
 
             veiculo = {
@@ -99,7 +102,7 @@ def locacao():
                 "placa": dados[1],
                 "marca": dados[2],
                 "modelo": dados[3],
-                "quantidade": float(dados[4]),
+                "quantidade": int(dados[4]),
                 "valor": float(dados[5])
             }       
 
@@ -125,7 +128,7 @@ def locacao():
     for veiculo in disponiveis:
         print(
             f"Código: {veiculo['codigo']} | "
-            f"{veiculo["marca"]} {veiculo['modelo']} | "
+            f"{veiculo['marca']} {veiculo['modelo']} | "
             f"R$: {veiculo['valor']:.2f}",
         )
         time.sleep(0.05)
@@ -138,8 +141,9 @@ def locacao():
     for veiculo in disponiveis:
         if veiculo["codigo"]  == codigo:
             encontrado = veiculo
-            print(f"Sua escolha foi {veiculo["marca"]}{veiculo['modelo']}",
+            print(f"Sua escolha foi {veiculo["marca"]} {veiculo['modelo']}",
                   f"VALOR: {veiculo["valor"]}")
+            return encontrado
             break
 
     if encontrado is None:
@@ -150,7 +154,7 @@ def locacao():
 
 
 def cliente():
-    cliente, sucesso = autenticar_usuario("clientes.txt")
+    cliente, sucesso = autenticar_usuario("banco-de-dados/clientes.txt")
     if sucesso:
         apagar()
         print(f"{Fore.GREEN}CLIENTE {cliente.upper()} SELECIONADO\n{Fore.RESET}".center(largura))
@@ -168,7 +172,7 @@ def cliente():
 
 
 def colaborador():
-    colaborador, sucesso = "danilo",True #autenticar_usuario("colaborador.txt")
+    colaborador, sucesso = "danilo",True #autenticar_usuario("banco-de-dados/colaborador.txt")
 
     if sucesso:
         apagar()
@@ -200,12 +204,12 @@ def cadastrar_cliente():
     linha = f"{ccliente},{csenha}\n"
 
     try:
-        with open("clientes.txt","a", encoding="utf-8") as arquivo:
+        with open("banco-de-dados/clientes.txt","a", encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()
-        print(f"{Fore.GREEN}Cliente Cadastrado com Sucesso! {os.path.abspath("clientes.txt")}{Fore.RESET}")
+        print(f"{Fore.GREEN}Cliente Cadastrado com Sucesso! {os.path.abspath("banco-de-dados/clientes.txt")}{Fore.RESET}")
     except Exception as e:
         print(f"{Fore.RED}Erro ao salvar: {e}{Fore.RESET}")
         input("Pressione Qualquer Tecla para Continuar: ")
@@ -215,7 +219,7 @@ def cadastrar_colaborador():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Colaborador ---{Style.RESET_ALL}".center(largura))
 
-    ccolaborador = questionary.text("Digite o nome de usuário do cliente: ").ask()
+    ccolaborador = questionary.text("Digite o nome de usuário do colaborador: ").ask()
     apagar()
     csenha = questionary.password("Digite uma nova senha: ").ask()
 
@@ -223,12 +227,12 @@ def cadastrar_colaborador():
     linha = f"{ccolaborador},{csenha}\n"
 
     try: 
-        with open("colaborador.txt","a",encoding="utf-8") as arquivo:
+        with open("banco-de-dados/colaborador.txt","a",encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()
-        print(f"{Fore.GREEN}Colaborador Cadastrado com Sucesso! {os.path.abspath("colaborador.txt")}{Fore.RESET}")
+        print(f"{Fore.GREEN}Colaborador Cadastrado com Sucesso! {os.path.abspath("banco-de-dados/colaborador.txt")}{Fore.RESET}")
     except Exception as e:
         print(f"{Fore.RED} Erro ao salvar; {e}{Fore.RESET}")
         input("Pressione Qualquer Tecla para Continuar: ")
@@ -248,12 +252,12 @@ def cadastro_veiculos():
     linha = f"{codigo},{placa},{marca},{modelo},{quantidade},{valor_aluguel}\n"
 
     try:
-        with open("veiculos.txt", "a", encoding="utf-8") as arquivo:
+        with open("banco-de-dados/veiculos.txt", "a", encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()    
-        print(f"{Fore.GREEN}Veículo Cadastrado com Sucesso! {os.path.abspath('veiculos.txt')}{Fore.RESET}")
+        print(f"{Fore.GREEN}Veículo Cadastrado com Sucesso! {os.path.abspath('banco-de-dados/veiculos.txt')}{Fore.RESET}")
         time.sleep(1.5)    
     except Exception as e:
         print(f"{Fore.RED}Erro ao salvar: {e}{Fore.RESET}")
@@ -273,10 +277,8 @@ def main():
         colaborador()
 
 
-#if __name__ == "__main__":
-   #main()
+if __name__ == "__main__":
+   main()
 
-
-locacao()
 
 
