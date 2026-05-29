@@ -277,8 +277,10 @@ def main():
         colaborador()
 
 
-if __name__ == "__main__":
-   main()
+#if __name__ == "__main__":
+   #main()
+
+print("Olá mundo")
 
 
 
