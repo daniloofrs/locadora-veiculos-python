@@ -280,4 +280,63 @@ def main():
 #if __name__ == "__main__":
    #main()
 
-print("corinthians")
+#Quantidade de dias
+dias = int(input("Digite a quantidade de dias: "))
+
+#Quantidade de dias
+diaria = 100
+
+#Valor da locação
+locacao = (diaria * dias)
+print(f"\nValor da locação:{locacao}")
+
+#Valor de seguro de 25%
+seguro = locacao * 0.25
+print(f"\nValor do seguro:{seguro}")
+
+#calculo de descontos
+if dias > 30:
+    desconto = locacao * 0.20
+    print(f"\nValor de locação com desconto:{desconto}")
+
+elif dias > 15:
+    desconto = locacao * 0.10
+    print(f"\nValor de locação com desconto:{desconto}")
+
+elif dias > 5:
+    desconto = locacao * 0.05
+    print(f"\nValor de locação com desconto:{desconto}")
+
+else:
+    desconto = 0
+
+print(f"\nDesconto aplicado:{desconto}")
+
+#Valor final
+
+valor_final= locacao + seguro - desconto
+print(f"\nValor final: {valor_final}")
+
+print("\nGerando recibo....")
+
+time.sleep(2)
+
+#Recibo
+
+print("\n========RECIBO========")
+print(f"Cliente: {cliente}")
+print(f"Colaborador: {colaborador}")
+
+print(f"\nVeículo: {['marca']} {['modelo']}")
+print(f"Placa: {['placa']}")
+
+print(f"\nValor da diária: R$ {diaria:.2f}")
+print(f"Dias locados: {dias}")
+
+print(f"\nValor da locação: R$ {locacao:.2f}")
+print(f"Seguro (25%): R$ {seguro:.2f}")
+print(f"Desconto: R$ {desconto:.2f}")
+
+print(f"\nValor final: R$ {valor_final:.2f}")
+
+print("============================")
