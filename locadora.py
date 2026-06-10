@@ -32,6 +32,10 @@ def boas_vindas():
 def apagar():
     os.system("cls" if os.name == "nt" else "clear")
 
+def formatar_moeda(valor):
+    valor_str = f"{valor:,.2f}"
+    return valor_str.replace(",", "X").replace(".", ",").replace("X", ".")
+
 
 
 
@@ -110,7 +114,7 @@ def locacao(cliente_nome, colab_nome):
 
     with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as arquivo:
         for linha in arquivo:
-            dados = linha.strip().split(",")
+            dados = linha.strip().replace(";", ",").split(",")
             if len(dados) >= 6:
                 veiculo = {
                     "codigo": dados[0],
@@ -135,7 +139,7 @@ def locacao(cliente_nome, colab_nome):
         print(
             f"Código: {veiculo['codigo']} | "
             f"{veiculo['marca']} {veiculo['modelo']} | "
-            f"R$: {veiculo['valor']:.2f}/dia"
+            f"R$ {formatar_moeda(veiculo['valor'])}/dia"
         )
         time.sleep(0.05)
 
@@ -152,7 +156,7 @@ def locacao(cliente_nome, colab_nome):
         time.sleep(1.5)
         return
         
-    print(f"\nSua escolha foi {encontrado['marca']} {encontrado['modelo']} - VALOR: R$ {encontrado['valor']:.2f}/dia")
+    print(f"\nSua escolha foi {encontrado['marca']} {encontrado['modelo']} - VALOR: R$ {formatar_moeda(encontrado['valor'])}/dia")
     
     try:
         dias = int(questionary.text("Digite a quantidade de dias de locação: ").ask())
@@ -188,20 +192,20 @@ def locacao(cliente_nome, colab_nome):
     print(f"Placa: {encontrado['placa']}")
     
     print(f"\n[Detalhes Financeiros]")
-    print(f"Valor unitário do aluguel: R$ {diaria:.2f}")
+    print(f"Valor unitário do aluguel: R$ {formatar_moeda(diaria)}")
     print(f"Dias locados: {dias}")
-    print(f"Valor total do aluguel: R$ {valor_locacao:.2f}")
-    print(f"Valor do seguro (25%): R$ {seguro:.2f}")
+    print(f"Valor total do aluguel: R$ {formatar_moeda(valor_locacao)}")
+    print(f"Valor do seguro (25%): R$ {formatar_moeda(seguro)}")
     
     if desconto > 0:
-        print(f"Desconto aplicado: R$ {desconto:.2f}")
+        print(f"Desconto aplicado: R$ {formatar_moeda(desconto)}")
         
-    print(f"\nValor total da locação (com desconto, se houver): R$ {valor_final:.2f}")
+    print(f"\nValor total da locação (com desconto, se houver): R$ {formatar_moeda(valor_final)}")
     print("="*53)
 
     os.makedirs("banco-de-dados", exist_ok=True)
     with open("banco-de-dados/locacoes.txt", "a", encoding="utf-8") as f:
-        f.write(f"{cliente_nome},{colab_nome},{encontrado['placa']},{dias},{valor_locacao},{seguro},{desconto},{valor_final}\n")
+        f.write(f"{cliente_nome},{colab_nome},{encontrado['placa']},{dias},{valor_locacao:.2f},{seguro:.2f},{desconto:.2f},{valor_final:.2f}\n")
 
     for v in veiculos:
         if v["codigo"] == encontrado["codigo"]:
@@ -209,7 +213,7 @@ def locacao(cliente_nome, colab_nome):
 
     with open("banco-de-dados/veiculos.txt", "w", encoding="utf-8") as f:
         for v in veiculos:
-            f.write(f"{v['codigo']},{v['placa']},{v['marca']},{v['modelo']},{v['quantidade']},{v['valor']}\n")
+            f.write(f"{v['codigo']},{v['placa']},{v['marca']},{v['modelo']},{v['quantidade']},{v['valor']:.2f}\n")
 
     input("\nPressione Enter para continuar...")
 
@@ -228,9 +232,9 @@ def cliente():
                 if os.path.exists("banco-de-dados/veiculos.txt"):
                     with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as arquivo:
                         for linha in arquivo:
-                            dados = linha.strip().split(",")
+                            dados = linha.strip().replace(";", ",").split(",")
                             if len(dados) >= 6 and int(dados[4]) > 0:
-                                print(f"Marca: {dados[2]} | Modelo: {dados[3]} | R$ {float(dados[5]):.2f}/dia")
+                                print(f"Marca: {dados[2]} | Modelo: {dados[3]} | R$ {formatar_moeda(float(dados[5]))}/dia")
                 else:
                     print("Nenhum veículo cadastrado.")
                 input("\nPressione Enter para voltar...")
@@ -309,9 +313,9 @@ def cadastrar_cliente():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Cliente ---{Style.RESET_ALL}".center(largura))
 
-    ccodigo = questionary.text("Digite o código do cliente: ").ask()
-    cnome = questionary.text("Digite o nome do cliente: ").ask()
-    csenha = questionary.password("Digite uma nova senha: ").ask()
+    ccodigo = questionary.text("Digite o código do cliente: ").ask().replace(",", "")
+    cnome = questionary.text("Digite o nome do cliente: ").ask().replace(",", "")
+    csenha = questionary.password("Digite uma nova senha: ").ask().replace(",", "")
 
     linha = f"{ccodigo},{cnome},{csenha}\n"
 
@@ -333,9 +337,9 @@ def cadastrar_colaborador():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Colaborador ---{Style.RESET_ALL}".center(largura))
 
-    ccodigo = questionary.text("Digite o código do colaborador: ").ask()
-    cnome = questionary.text("Digite o nome do colaborador: ").ask()
-    csenha = questionary.password("Digite uma nova senha: ").ask()
+    ccodigo = questionary.text("Digite o código do colaborador: ").ask().replace(",", "")
+    cnome = questionary.text("Digite o nome do colaborador: ").ask().replace(",", "")
+    csenha = questionary.password("Digite uma nova senha: ").ask().replace(",", "")
 
     linha = f"{ccodigo},{cnome},{csenha}\n"
 
@@ -357,22 +361,23 @@ def cadastro_veiculos():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Veículo ---{Style.RESET_ALL}".center(largura))
 
-    codigo = input("Código: ")
-    placa = input("Placa: ")
-    marca = input("Marca: ")
-    modelo = input("Modelo: ")
-    quantidade = input("Quantidade: ")
-    valor_aluguel = input("Valor do Aluguel: ")
+    codigo = questionary.text("Código: ").ask().replace(",", "")
+    placa = questionary.text("Placa: ").ask().replace(",", "")
+    marca = questionary.text("Marca: ").ask().replace(",", "")
+    modelo = questionary.text("Modelo: ").ask().replace(",", "")
+    quantidade = questionary.text("Quantidade: ").ask()
+    valor_aluguel = questionary.text("Valor do Aluguel: ").ask()
 
+    valor_aluguel = valor_aluguel.replace(",", ".")
     try:
         int(quantidade)
-        float(valor_aluguel)
+        valor_aluguel_float = float(valor_aluguel)
     except ValueError:
         print(f"{Fore.RED}A quantidade e o valor do aluguel precisam ser números.{Fore.RESET}")
         time.sleep(1.5)
         return
 
-    linha = f"{codigo},{placa},{marca},{modelo},{quantidade},{valor_aluguel}\n"
+    linha = f"{codigo},{placa},{marca},{modelo},{quantidade},{valor_aluguel_float:.2f}\n"
 
     os.makedirs("banco-de-dados", exist_ok=True)
     try:
@@ -395,7 +400,7 @@ def gerar_relatorio():
     if os.path.exists("banco-de-dados/veiculos.txt"):
         with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as f:
             for linha in f:
-                dados = linha.strip().split(",")
+                dados = linha.strip().replace(";", ",").split(",")
                 if len(dados) >= 6:
                     veiculos.append({
                         "codigo": dados[0], "placa": dados[1], "marca": dados[2], "modelo": dados[3], 
@@ -439,9 +444,9 @@ def gerar_relatorio():
                     print(f"- Cód: {dados[0]} | Nome: {nome}")
                     
     print(f"\n{Fore.CYAN}[MÉTRICAS FINANCEIRAS]{Fore.RESET}")
-    print(f"Total de Locações (Bruto): R$ {total_locacoes:.2f}")
-    print(f"Total de Seguros: R$ {total_seguros:.2f}")
-    print(f"Total Final (Considerando Descontos e Seguros): R$ {total_final:.2f}")
+    print(f"Total de Locações (Bruto): R$ {formatar_moeda(total_locacoes)}")
+    print(f"Total de Seguros: R$ {formatar_moeda(total_seguros)}")
+    print(f"Total Final (Considerando Descontos e Seguros): R$ {formatar_moeda(total_final)}")
     
     input("\nPressione Enter para voltar...")
 
