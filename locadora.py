@@ -2,10 +2,11 @@ import questionary
 import pyfiglet
 import time
 import os
+import shutil
 from datetime import datetime
 from colorama import Style,Fore
 
-largura = os.get_terminal_size().columns
+largura = shutil.get_terminal_size((80, 20)).columns
 
 
 def texto_especial(texto):
@@ -39,7 +40,8 @@ def inicializar():
     print(f"{Style.BRIGHT}Seja bem-vindo a Locadora de Veículos!\n{Style.RESET_ALL}".center(largura))
     while True:
         entrada = questionary.select("Selecione seu tipo de usuário:",choices=["Clientes",
-                                                                    "Colaborador"],
+                                                                    "Colaborador",
+                                                                    "Sair"],
                                                                     qmark="",
                                                                     instruction=" "
                                                                     ).ask()
@@ -48,42 +50,52 @@ def inicializar():
             return "clientes"
         elif entrada == "Colaborador":
             return "colaborador"
-            
+        elif entrada == "Sair" or entrada is None:
+            return "sair"
         else:
             continue
     
 
-
-
 def autenticar_usuario(texto):
     apagar()
-    ent_usuario = questionary.text("Digite seu nome de usuário: ").ask()
+    ent_usuario = questionary.text("Digite seu código de usuário: ").ask()
     apagar()
     ent_senha = questionary.password("Digite sua senha: ").ask()
 
     sucesso = False
-    with open(texto,"r") as arquivo:
+    nome_usuario = ""
+    
+    if not os.path.exists(texto):
+        print("Nenhum registro encontrado no banco de dados.")
+        time.sleep(1.5)
+        return None, False
+
+    with open(texto,"r", encoding="utf-8") as arquivo:
         for linha in arquivo:
             dados = linha.strip().split(",")
 
-            if len(dados) == 2:
-                usuario_salvo, senha_salva = dados
-
+            if len(dados) >= 3:
+                usuario_salvo, nome_salvo, senha_salva = dados[0], dados[1], dados[2]
+            elif len(dados) == 2:
+                usuario_salvo, senha_salva = dados[0], dados[1]
+                nome_salvo = usuario_salvo
+            else:
+                continue
 
             if ent_usuario == usuario_salvo and ent_senha == senha_salva:
                 sucesso = True
-                return usuario_salvo, sucesso
+                nome_usuario = nome_salvo
+                return nome_usuario, sucesso
     if sucesso:
         print("Acesso liberado!")
     else:
         print("Usuário ou senha incorretos.")
+        time.sleep(1.5)
         sucesso = False
         return None, sucesso    
 
 
-
-
-def locacao():
+def locacao(cliente_nome, colab_nome):
     apagar()
     print(f"{Style.BRIGHT}----- Locação de Veículo -----{Style.RESET_ALL}".center(largura))
     print(Fore.BLUE + ("=" * largura) + "\n" + Fore.RESET)
@@ -91,125 +103,227 @@ def locacao():
 
     veiculos = []
 
+    if not os.path.exists("banco-de-dados/veiculos.txt"):
+        print("Nenhum veículo cadastrado.")
+        time.sleep(1.5)
+        return
 
     with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as arquivo:
         for linha in arquivo:
             dados = linha.strip().split(",")
+            if len(dados) >= 6:
+                veiculo = {
+                    "codigo": dados[0],
+                    "placa": dados[1],
+                    "marca": dados[2],
+                    "modelo": dados[3],
+                    "quantidade": int(dados[4]),
+                    "valor": float(dados[5])
+                }       
+                veiculos.append(veiculo)
 
-
-            veiculo = {
-                "codigo": dados[0],
-                "placa": dados[1],
-                "marca": dados[2],
-                "modelo": dados[3],
-                "quantidade": int(dados[4]),
-                "valor": float(dados[5])
-            }       
-
-            veiculos.append(veiculo)
-
-
-    disponiveis = []
-
-    for veiculo in veiculos:
-        if veiculo["quantidade"] > 0:
-            disponiveis.append(veiculo)
-
+    disponiveis = [v for v in veiculos if v["quantidade"] > 0]
     
     if len(disponiveis) == 0:
         print("Nenhum veículo disponível.")
+        input("\nPressione Enter para voltar.")
         return
     
-
     print(f"{Style.BRIGHT}{Fore.CYAN}Veículos Disponíveis:\n{Style.RESET_ALL}{Fore.RESET}")
-    time.sleep(0.5)
-
 
     for veiculo in disponiveis:
         print(
             f"Código: {veiculo['codigo']} | "
             f"{veiculo['marca']} {veiculo['modelo']} | "
-            f"R$: {veiculo['valor']:.2f}",
+            f"R$: {veiculo['valor']:.2f}/dia"
         )
         time.sleep(0.05)
 
     codigo = questionary.text("\nDigite o código do veículo: ", qmark="").ask()
 
     encontrado = None
-
-
     for veiculo in disponiveis:
         if veiculo["codigo"]  == codigo:
             encontrado = veiculo
-            print(f"Sua escolha foi {veiculo["marca"]} {veiculo['modelo']}",
-                  f"VALOR: {veiculo["valor"]}")
-            return encontrado
             break
 
     if encontrado is None:
         print("Veículo não encontrado.")
+        time.sleep(1.5)
         return
+        
+    print(f"\nSua escolha foi {encontrado['marca']} {encontrado['modelo']} - VALOR: R$ {encontrado['valor']:.2f}/dia")
     
+    try:
+        dias = int(questionary.text("Digite a quantidade de dias de locação: ").ask())
+    except ValueError:
+        print("Quantidade inválida.")
+        time.sleep(1.5)
+        return
 
+    diaria = encontrado["valor"]
+    valor_locacao = diaria * dias
+    seguro = valor_locacao * 0.25
+    
+    desconto = 0
+    if dias > 30:
+        desconto = valor_locacao * 0.20
+    elif dias > 15:
+        desconto = valor_locacao * 0.10
+    elif dias > 5:
+        desconto = valor_locacao * 0.05
+
+    valor_final = valor_locacao + seguro - desconto
+
+    apagar()
+    print("\nGerando comprovante...")
+    time.sleep(1.5)
+
+    print("\n" + "="*20 + " COMPROVANTE " + "="*20)
+    print(f"Cliente: {cliente_nome}")
+    print(f"Colaborador: {colab_nome}")
+    
+    print(f"\n[Dados do Veículo]")
+    print(f"Marca/Modelo: {encontrado['marca']} {encontrado['modelo']}")
+    print(f"Placa: {encontrado['placa']}")
+    
+    print(f"\n[Detalhes Financeiros]")
+    print(f"Valor unitário do aluguel: R$ {diaria:.2f}")
+    print(f"Dias locados: {dias}")
+    print(f"Valor total do aluguel: R$ {valor_locacao:.2f}")
+    print(f"Valor do seguro (25%): R$ {seguro:.2f}")
+    
+    if desconto > 0:
+        print(f"Desconto aplicado: R$ {desconto:.2f}")
+        
+    print(f"\nValor total da locação (com desconto, se houver): R$ {valor_final:.2f}")
+    print("="*53)
+
+    os.makedirs("banco-de-dados", exist_ok=True)
+    with open("banco-de-dados/locacoes.txt", "a", encoding="utf-8") as f:
+        f.write(f"{cliente_nome},{colab_nome},{encontrado['placa']},{dias},{valor_locacao},{seguro},{desconto},{valor_final}\n")
+
+    for v in veiculos:
+        if v["codigo"] == encontrado["codigo"]:
+            v["quantidade"] -= 1
+
+    with open("banco-de-dados/veiculos.txt", "w", encoding="utf-8") as f:
+        for v in veiculos:
+            f.write(f"{v['codigo']},{v['placa']},{v['marca']},{v['modelo']},{v['quantidade']},{v['valor']}\n")
+
+    input("\nPressione Enter para continuar...")
 
 
 def cliente():
-    cliente, sucesso = autenticar_usuario("banco-de-dados/clientes.txt")
+    cliente_nome, sucesso = autenticar_usuario("banco-de-dados/clientes.txt")
     if sucesso:
-        apagar()
-        print(f"{Fore.GREEN}CLIENTE {cliente.upper()} SELECIONADO\n{Fore.RESET}".center(largura))
-        entrada = questionary.select("SELECIONE OQUE DESEJA FAZER:",choices=["Locação de Veículo",
-                                                                         "ADICIONAR MAIS COISAS DEPOIS"]).ask()
-        
+        while True:
+            apagar()
+            print(f"{Fore.GREEN}CLIENTE {cliente_nome.upper()} SELECIONADO\n{Fore.RESET}".center(largura))
+            entrada = questionary.select("SELECIONE O QUE DESEJA FAZER:",choices=["Ver Veículos Disponíveis", "Sair"]).ask()
+            
+            if entrada == "Ver Veículos Disponíveis":
+                apagar()
+                print(f"{Style.BRIGHT}{Fore.CYAN}--- Veículos Disponíveis ---{Fore.RESET}{Style.RESET_ALL}")
+                if os.path.exists("banco-de-dados/veiculos.txt"):
+                    with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as arquivo:
+                        for linha in arquivo:
+                            dados = linha.strip().split(",")
+                            if len(dados) >= 6 and int(dados[4]) > 0:
+                                print(f"Marca: {dados[2]} | Modelo: {dados[3]} | R$ {float(dados[5]):.2f}/dia")
+                else:
+                    print("Nenhum veículo cadastrado.")
+                input("\nPressione Enter para voltar...")
 
-        if entrada == "Locação de Veículo":
-            locacao()
-
-        elif entrada == "ADICIONAR MAIS COISAS DEPOIS":
-            print("Ainda não fizemos essa parte!")
-            input()
-
+            elif entrada == "Sair" or entrada is None:
+                break
 
 
 def colaborador():
-    colaborador, sucesso = "danilo",True #autenticar_usuario("banco-de-dados/colaborador.txt")
+    if not os.path.exists("banco-de-dados/colaborador.txt"):
+        os.makedirs("banco-de-dados", exist_ok=True)
+        with open("banco-de-dados/colaborador.txt", "w", encoding="utf-8") as f:
+            f.write("admin,Administrador,admin\n")
+        print("Nenhum colaborador encontrado. Criado usuário padrão -> Código: admin, Senha: admin")
+        time.sleep(2)
+
+    colab_nome, sucesso = autenticar_usuario("banco-de-dados/colaborador.txt")
 
     if sucesso:
-        apagar()
-        print(f"{Fore.GREEN}COLABORADOR {colaborador.upper()} SELECIONADO\n{Fore.RESET}".center(largura))
-        entrada = questionary.select("SELECIONE OQUE DESEJA FAZER:",choices=["Cadastrar Cliente",
-                                                                         "Cadastrar Colaborador",
-                                                                         "Cadastrar Veículo"]).ask()
-        
-        if entrada == "Cadastrar Cliente":
-            cadastrar_cliente()
+        while True:
+            apagar()
+            print(f"{Fore.GREEN}COLABORADOR {colab_nome.upper()} SELECIONADO\n{Fore.RESET}".center(largura))
+            entrada = questionary.select("SELECIONE O QUE DESEJA FAZER:", choices=[
+                "Realizar Locação",
+                "Cadastrar Cliente",
+                "Cadastrar Colaborador",
+                "Cadastrar Veículo",
+                "Gerar Relatório",
+                "Sair"
+            ]).ask()
+            
+            if entrada == "Realizar Locação":
+                if not os.path.exists("banco-de-dados/clientes.txt"):
+                    print("Nenhum cliente cadastrado. Cadastre um cliente primeiro.")
+                    time.sleep(2)
+                    continue
+                
+                clientes = []
+                with open("banco-de-dados/clientes.txt", "r", encoding="utf-8") as f:
+                    for linha in f:
+                        dados = linha.strip().split(",")
+                        if len(dados) >= 2:
+                            nome = dados[1] if len(dados) >= 3 else dados[0]
+                            clientes.append({"codigo": dados[0], "nome": nome})
+                
+                if not clientes:
+                    print("Nenhum cliente cadastrado.")
+                    time.sleep(2)
+                    continue
 
-        elif entrada == "Cadastrar Colaborador":
-            cadastrar_colaborador()
+                escolhas = [f"{c['codigo']} - {c['nome']}" for c in clientes]
+                escolhas.append("Cancelar")
+                
+                cliente_escolhido = questionary.select("Selecione o Cliente:", choices=escolhas).ask()
+                if cliente_escolhido != "Cancelar":
+                    nome_c = cliente_escolhido.split(" - ")[1]
+                    locacao(nome_c, colab_nome)
 
-        elif entrada == "Cadastrar Veículo":
-            cadastro_veiculos()
+            elif entrada == "Cadastrar Cliente":
+                cadastrar_cliente()
 
+            elif entrada == "Cadastrar Colaborador":
+                cadastrar_colaborador()
 
+            elif entrada == "Cadastrar Veículo":
+                cadastro_veiculos()
+
+            elif entrada == "Gerar Relatório":
+                gerar_relatorio()
+
+            elif entrada == "Sair" or entrada is None:
+                break
 
 
 def cadastrar_cliente():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Cliente ---{Style.RESET_ALL}".center(largura))
 
-    ccliente = questionary.text("Digite o nome de usuário do cliente: ").ask()
-    apagar()
+    ccodigo = questionary.text("Digite o código do cliente: ").ask()
+    cnome = questionary.text("Digite o nome do cliente: ").ask()
     csenha = questionary.password("Digite uma nova senha: ").ask()
 
-    linha = f"{ccliente},{csenha}\n"
+    linha = f"{ccodigo},{cnome},{csenha}\n"
 
+    os.makedirs("banco-de-dados", exist_ok=True)
     try:
         with open("banco-de-dados/clientes.txt","a", encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()
-        print(f"{Fore.GREEN}Cliente Cadastrado com Sucesso! {os.path.abspath("banco-de-dados/clientes.txt")}{Fore.RESET}")
+        print(f"{Fore.GREEN}Cliente Cadastrado com Sucesso!{Fore.RESET}")
+        time.sleep(1.5)
     except Exception as e:
         print(f"{Fore.RED}Erro ao salvar: {e}{Fore.RESET}")
         input("Pressione Qualquer Tecla para Continuar: ")
@@ -219,20 +333,21 @@ def cadastrar_colaborador():
     apagar()
     print(f"{Style.BRIGHT}--- Cadastro de Novo Colaborador ---{Style.RESET_ALL}".center(largura))
 
-    ccolaborador = questionary.text("Digite o nome de usuário do colaborador: ").ask()
-    apagar()
+    ccodigo = questionary.text("Digite o código do colaborador: ").ask()
+    cnome = questionary.text("Digite o nome do colaborador: ").ask()
     csenha = questionary.password("Digite uma nova senha: ").ask()
 
+    linha = f"{ccodigo},{cnome},{csenha}\n"
 
-    linha = f"{ccolaborador},{csenha}\n"
-
+    os.makedirs("banco-de-dados", exist_ok=True)
     try: 
         with open("banco-de-dados/colaborador.txt","a",encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()
-        print(f"{Fore.GREEN}Colaborador Cadastrado com Sucesso! {os.path.abspath("banco-de-dados/colaborador.txt")}{Fore.RESET}")
+        print(f"{Fore.GREEN}Colaborador Cadastrado com Sucesso!{Fore.RESET}")
+        time.sleep(1.5)
     except Exception as e:
         print(f"{Fore.RED} Erro ao salvar; {e}{Fore.RESET}")
         input("Pressione Qualquer Tecla para Continuar: ")
@@ -249,94 +364,97 @@ def cadastro_veiculos():
     quantidade = input("Quantidade: ")
     valor_aluguel = input("Valor do Aluguel: ")
 
+    try:
+        int(quantidade)
+        float(valor_aluguel)
+    except ValueError:
+        print(f"{Fore.RED}A quantidade e o valor do aluguel precisam ser números.{Fore.RESET}")
+        time.sleep(1.5)
+        return
+
     linha = f"{codigo},{placa},{marca},{modelo},{quantidade},{valor_aluguel}\n"
 
+    os.makedirs("banco-de-dados", exist_ok=True)
     try:
         with open("banco-de-dados/veiculos.txt", "a", encoding="utf-8") as arquivo:
             arquivo.write(linha)
             arquivo.flush()
             os.fsync(arquivo.fileno())
         apagar()    
-        print(f"{Fore.GREEN}Veículo Cadastrado com Sucesso! {os.path.abspath('banco-de-dados/veiculos.txt')}{Fore.RESET}")
+        print(f"{Fore.GREEN}Veículo Cadastrado com Sucesso!{Fore.RESET}")
         time.sleep(1.5)    
     except Exception as e:
         print(f"{Fore.RED}Erro ao salvar: {e}{Fore.RESET}")
         input("Pressione Qualquer Tecla para Continuar: ")
 
+def gerar_relatorio():
+    apagar()
+    print(f"{Style.BRIGHT}--- Relatório Gerencial ---{Style.RESET_ALL}".center(largura))
+    
+    veiculos = []
+    if os.path.exists("banco-de-dados/veiculos.txt"):
+        with open("banco-de-dados/veiculos.txt","r",encoding="utf-8") as f:
+            for linha in f:
+                dados = linha.strip().split(",")
+                if len(dados) >= 6:
+                    veiculos.append({
+                        "codigo": dados[0], "placa": dados[1], "marca": dados[2], "modelo": dados[3], 
+                        "quantidade": int(dados[4]), "valor": float(dados[5])
+                    })
+                    
+    print(f"\n{Fore.CYAN}[VEÍCULOS DISPONÍVEIS]{Fore.RESET}")
+    for v in veiculos:
+        if v["quantidade"] > 0:
+            print(f"- {v['marca']} {v['modelo']} (Placa: {v['placa']}) - Qtd Livre: {v['quantidade']}")
+
+    total_locacoes = 0.0
+    total_seguros = 0.0
+    total_final = 0.0
+    placas_locadas = set()
+
+    if os.path.exists("banco-de-dados/locacoes.txt"):
+        with open("banco-de-dados/locacoes.txt","r",encoding="utf-8") as f:
+            for linha in f:
+                dados = linha.strip().split(",")
+                if len(dados) >= 8:
+                    placas_locadas.add(dados[2])
+                    total_locacoes += float(dados[4])
+                    total_seguros += float(dados[5])
+                    total_final += float(dados[7])
+
+    print(f"\n{Fore.CYAN}[VEÍCULOS LOCADOS]{Fore.RESET}")
+    for placa in placas_locadas:
+        for v in veiculos:
+            if v["placa"] == placa:
+                print(f"- {v['marca']} {v['modelo']} (Placa: {v['placa']}) encontra-se em posse de clientes.")
+                break
+
+    print(f"\n{Fore.CYAN}[CLIENTES CADASTRADOS]{Fore.RESET}")
+    if os.path.exists("banco-de-dados/clientes.txt"):
+        with open("banco-de-dados/clientes.txt","r",encoding="utf-8") as f:
+            for linha in f:
+                dados = linha.strip().split(",")
+                if len(dados) >= 2:
+                    nome = dados[1] if len(dados) >= 3 else dados[0]
+                    print(f"- Cód: {dados[0]} | Nome: {nome}")
+                    
+    print(f"\n{Fore.CYAN}[MÉTRICAS FINANCEIRAS]{Fore.RESET}")
+    print(f"Total de Locações (Bruto): R$ {total_locacoes:.2f}")
+    print(f"Total de Seguros: R$ {total_seguros:.2f}")
+    print(f"Total Final (Considerando Descontos e Seguros): R$ {total_final:.2f}")
+    
+    input("\nPressione Enter para voltar...")
 
 def main():
-
-
-
     boas_vindas()
-    inicial = inicializar()
-    if inicial == "clientes":
-        cliente()
-        
-    elif inicial == "colaborador":
-        colaborador()
+    while True:
+        inicial = inicializar()
+        if inicial == "clientes":
+            cliente()
+        elif inicial == "colaborador":
+            colaborador()
+        elif inicial == "sair":
+            break
 
-
-#if __name__ == "__main__":
-   #main()
-
-#Quantidade de dias
-dias = int(input("Digite a quantidade de dias: "))
-
-#Quantidade de dias
-diaria = 100
-
-#Valor da locação
-locacao = (diaria * dias)
-print(f"\nValor da locação:{locacao}")
-
-#Valor de seguro de 25%
-seguro = locacao * 0.25
-print(f"\nValor do seguro:{seguro}")
-
-#calculo de descontos
-if dias > 30:
-    desconto = locacao * 0.20
-    print(f"\nValor de locação com desconto:{desconto}")
-
-elif dias > 15:
-    desconto = locacao * 0.10
-    print(f"\nValor de locação com desconto:{desconto}")
-
-elif dias > 5:
-    desconto = locacao * 0.05
-    print(f"\nValor de locação com desconto:{desconto}")
-
-else:
-    desconto = 0
-
-print(f"\nDesconto aplicado:{desconto}")
-
-#Valor final
-
-valor_final= locacao + seguro - desconto
-print(f"\nValor final: {valor_final}")
-
-print("\nGerando recibo....")
-
-time.sleep(2)
-
-#Recibo
-
-print("\n========RECIBO========")
-print(f"Cliente: {cliente}")
-print(f"Colaborador: {colaborador}")
-
-print(f"\nVeículo: {['marca']} {['modelo']}")
-print(f"Placa: {['placa']}")
-
-print(f"\nValor da diária: R$ {diaria:.2f}")
-print(f"Dias locados: {dias}")
-
-print(f"\nValor da locação: R$ {locacao:.2f}")
-print(f"Seguro (25%): R$ {seguro:.2f}")
-print(f"Desconto: R$ {desconto:.2f}")
-
-print(f"\nValor final: R$ {valor_final:.2f}")
-
-print("============================")
+if __name__ == "__main__":
+    main()
