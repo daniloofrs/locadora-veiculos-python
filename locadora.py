@@ -168,16 +168,17 @@ def locacao(cliente_nome, colab_nome):
     diaria = encontrado["valor"]
     valor_locacao = diaria * dias
     seguro = valor_locacao * 0.25
+    valor_total_sem_desconto = valor_locacao + seguro
     
     desconto = 0
     if dias > 30:
-        desconto = valor_locacao * 0.20
+        desconto = valor_total_sem_desconto * 0.20
     elif dias > 15:
-        desconto = valor_locacao * 0.10
+        desconto = valor_total_sem_desconto * 0.10
     elif dias > 5:
-        desconto = valor_locacao * 0.05
+        desconto = valor_total_sem_desconto * 0.05
 
-    valor_final = valor_locacao + seguro - desconto
+    valor_final = valor_total_sem_desconto - desconto
 
     apagar()
     print("\nGerando comprovante...")
@@ -196,11 +197,13 @@ def locacao(cliente_nome, colab_nome):
     print(f"Dias locados: {dias}")
     print(f"Valor total do aluguel: R$ {formatar_moeda(valor_locacao)}")
     print(f"Valor do seguro (25%): R$ {formatar_moeda(seguro)}")
+    print(f"Valor total da locação (sem desconto): R$ {formatar_moeda(valor_total_sem_desconto)}")
     
     if desconto > 0:
         print(f"Desconto aplicado: R$ {formatar_moeda(desconto)}")
-        
-    print(f"\nValor total da locação (com desconto, se houver): R$ {formatar_moeda(valor_final)}")
+        print(f"Valor total da locação com desconto: R$ {formatar_moeda(valor_final)}")
+    else:
+        print(f"\nValor total da locação: R$ {formatar_moeda(valor_final)}")
     print("="*53)
 
     os.makedirs("banco-de-dados", exist_ok=True)
