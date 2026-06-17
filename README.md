@@ -3,6 +3,19 @@
   <img src="https://github.com/user-attachments/assets/cbebcf39-f5a1-4ede-8896-4399d3515e15" alt="Relatório Gerencial do Sistema" width="550px" />
 </p>
 
+<table align="center">
+  <tr>
+    <td>
+      <p align="center"><b>Autenticação e Inicialização</b></p>
+      <img src="https://github.com/user-attachments/assets/03d4f6af-3db2-4ac6-98f7-406d5b521171" alt="Código de Autenticação" width="350px" />
+    </td>
+    <td>
+      <p align="center"><b>Lógica de Locação e Descontos</b></p>
+      <img src="https://github.com/user-attachments/assets/c77e3bbb-13a0-4bd6-ad74-1a7e51757f18" alt="Código de Locação" width="350px" />
+    </td>
+  </tr>
+</table>
+
 
 
 Este projeto visa a implementação de um sistema robusto para o gerenciamento de uma locadora de veículos.
@@ -50,3 +63,7 @@ Para instalar as bibliotecas necessárias para o funcionamento do projeto, utili
 2. **Comando Alternativo:**
    ```bash
    python -m pip install nome-da-biblioteca
+
+
+
+
