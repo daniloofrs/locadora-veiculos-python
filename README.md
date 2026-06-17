@@ -1,4 +1,9 @@
 # Sistema de Locadora de Veículos
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/cbebcf39-f5a1-4ede-8896-4399d3515e15" alt="Relatório Gerencial do Sistema" width="550px" />
+</p>
+
+
 
 Este projeto visa a implementação de um sistema robusto para o gerenciamento de uma locadora de veículos.
 **(Projeto da disciplina de Introdução a Programação - UNIESP)**
@@ -29,8 +34,11 @@ O desenvolvimento deste sistema baseia-se em uma estrutura de classes que modela
 
 ## 🚀 Como Executar
 1. Clone este repositório.
-2. Certifique-se de ter o ambiente configurado para **Python**.
-3. Talvez no seu sistema não tenha algumas bibliotecas, será preciso instalá-las. Para um tutorial. Basta ir para a seção **📥 Instalação de Dependências**
+2. ```bash
+git clone [https://github.com/daniloofrs/locadora-veiculos-python.git](https://github.com/daniloofrs/locadora-veiculos-python.git)
+cd locadora-veiculos-python
+3. Certifique-se de ter o ambiente configurado para **Python**.
+4. Talvez no seu sistema não tenha algumas bibliotecas, será preciso instalá-las. Para um tutorial. Basta ir para a seção **📥 Instalação de Dependências**
 
 ### 📥 Instalação de Dependências
 Para instalar as bibliotecas necessárias para o funcionamento do projeto, utilize o terminal do VS Code:
