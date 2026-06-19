@@ -44,20 +44,20 @@ O desenvolvimento deste sistema baseia-se em uma estrutura de classes que modela
 
 ## 🚀 Como Executar
 1. Clone este repositório:
-   \`\`\`bash
+   ```bash
    git clone https://github.com/daniloofrs/locadora-veiculos-python.git
    cd locadora-veiculos-python
-   \`\`\`
+   ```
 2. Certifique-se de ter o ambiente configurado para **Python**.
 3. Talvez no seu sistema não tenha algumas bibliotecas, será preciso instalá-las. Para um tutorial, basta ir para a seção **📥 Instalação de Dependências**.
 
 ### 📥 Instalação de Dependências
 Para instalar as bibliotecas necessárias para o funcionamento do projeto, utilize o terminal do VS Code:
 1. **Comando padrão:**
-   \`\`\`bash
+   ```bash
    pip install nome-da-biblioteca
-   \`\`\`
+   ```
 2. **Comando Alternativo:**
-   \`\`\`bash
+   ```bash
    python -m pip install nome-da-biblioteca
-   \`\`\`
+   ```
