@@ -14,50 +14,44 @@
     </td>
   </tr>
 </table>
-
-Este projeto visa a implementação de um sistema robusto para o gerenciamento de uma locadora de veículos.
-
-**(Projeto da disciplina de Introdução a Programação - UNIESP)**
-
-## 👥 Equipe
+Projeto desenvolvido em Python para a disciplina de Introdução à Programação (UNIESP). O programa roda no terminal e simula as operações diárias de atendimento de uma locadora de carros.
+## Equipe
 * Danilo Marques Fernandes
 * Gabriel Costa
 * João Marcelo
-
-## 🛠 Funcionalidades
-O sistema foi projetado para atender aos seguintes requisitos:
-* **Cadastros:** Gestão de veículos (código, placa, marca, modelo, quantidade, valor), clientes e colaboradores.
-* **Locação:** Processo automatizado com validação de cliente e colaborador.
-* **Cálculos Financeiros:**
-    * **Seguro:** Adicional fixo de 25% sobre o valor bruto.
-    * **Descontos Progressivos:**
-        * > 5 dias: 5% de desconto.
-        * > 15 dias: 10% de desconto.
-        * > 30 dias: 20% de desconto.
-* **Saídas:** Emissão de comprovantes detalhados e geração de relatórios gerenciais (veículos, clientes e métricas financeiras).
-
-## 🛠 Arquitetura e Lógica do Sistema
-O desenvolvimento deste sistema baseia-se em uma estrutura de classes que modela os pilares de uma locadora: Veículos, Clientes e Colaboradores.
-* **Lógica de Negócios:** O sistema aplica uma regra de cálculo em cascata. O valor total é determinado pelo período de locação, acrescido de uma taxa fixa de 25% referente ao seguro.
-* **Gestão de Descontos:** A aplicação de descontos é automatizada por meio de condicionais (if/else) que avaliam o tempo de permanência, garantindo que a regra de descontos progressivos (5%, 10% ou 20%) seja aplicada com precisão matemática sobre o subtotal.
-* **Persistência de Dados:** O sistema foi projetado para manter a integridade dos dados durante a geração de comprovantes e relatórios, garantindo que o histórico de locações e o estado atual da frota (disponível ou locado) sejam consultáveis em tempo real.
-
-## 🚀 Como Executar
-1. Clone este repositório:
+## O que o sistema faz
+* Cadastra e consulta veículos (código, placa, marca, modelo, estoque e valor da diária), clientes e colaboradores.
+* Realiza locações associando o cliente ao colaborador e ao veículo escolhido.
+* Calcula o custo total com seguro fixo de 25% sobre as diárias.
+* Aplica descontos automáticos conforme a duração:
+  * Acima de 5 dias: 5% de desconto
+  * Acima de 15 dias: 10% de desconto
+  * Acima de 30 dias: 20% de desconto
+* Emite recibo ao finalizar a locação e gera relatórios com status da frota e balanço financeiro da sessão.
+## Estrutura do código
+O programa utiliza orientação a objetos para organizar as entidades do negócio (`Veiculo`, `Cliente` e `Colaborador`). As regras de negócio e cálculo de descontos são calculadas no momento do fechamento da locação, atualizando a disponibilidade dos veículos na sessão.
+## Como Executar
+### Pré-requisitos
+* Python 3 instalado
+### Passo a passo
+1. Clone o repositório:
    ```bash
    git clone https://github.com/daniloofrs/locadora-veiculos-python.git
    cd locadora-veiculos-python
    ```
-2. Certifique-se de ter o ambiente configurado para **Python**.
-3. Talvez no seu sistema não tenha algumas bibliotecas, será preciso instalá-las. Para um tutorial, basta ir para a seção **📥 Instalação de Dependências**.
-
-### 📥 Instalação de Dependências
-Para instalar as bibliotecas necessárias para o funcionamento do projeto, utilize o terminal do VS Code:
-1. **Comando padrão:**
+2. (Opcional) Crie e ative um ambiente virtual:
    ```bash
-   pip install nome-da-biblioteca
+   python -m venv venv
+   # Windows:
+   .\venv\Scripts\activate
+   # Linux/macOS:
+   source venv/bin/activate
    ```
-2. **Comando Alternativo:**
+3. Instale as dependências (se houver arquivo `requirements.txt`):
    ```bash
-   python -m pip install nome-da-biblioteca
+   pip install -r requirements.txt
+   ```
+4. Execute o sistema:
+   ```bash
+   python main.py
    ```
